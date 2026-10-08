@@ -1,0 +1,52 @@
+// Add calculated tables individually via Modeling > New table.
+Calendar =
+ADDCOLUMNS(
+    CALENDAR(MIN(Daily[business_date]), MAX(Daily[business_date])),
+    "YearMonth", FORMAT([Date], "yyyy-MM"),
+    "Year", YEAR([Date]),
+    "Month", MONTH([Date])
+)
+
+Departments = DISTINCT(Daily[department])
+
+Periods = DISTINCT(Daily[period])
+
+// Add each measure separately. Amounts are stored as integer cents.
+门诊量 = SUM(Daily[registrations])
+
+就诊量 = SUM(Daily[visits])
+
+支付金额 = DIVIDE(SUM(Daily[gross_cents]), 100)
+
+退款金额 = DIVIDE(SUM(Daily[refund_cents]), 100)
+
+净收费 = DIVIDE(SUM(Daily[net_cents]), 100)
+
+客单价 = DIVIDE([净收费], [就诊量])
+
+就诊完成率 = DIVIDE([就诊量], [门诊量])
+
+异常数 = COUNTROWS(Alerts)
+
+// Complete single-month only: avoids comparing a partial month to a full month.
+净收费环比 =
+VAR CurrentStart = MIN(Calendar[Date])
+VAR CurrentEnd = MAX(Calendar[Date])
+VAR PriorStart = EDATE(CurrentStart, -1)
+VAR PriorEnd = EOMONTH(PriorStart, 0)
+VAR CoverageStart = MINX(ALL(Calendar), Calendar[Date])
+VAR FullMonth = DAY(CurrentStart) = 1 && CurrentEnd = EOMONTH(CurrentStart, 0)
+    && COUNTROWS(VALUES(Calendar[Date])) = DAY(CurrentEnd)
+VAR PriorAmount = CALCULATE([净收费], REMOVEFILTERS(Calendar), DATESBETWEEN(Calendar[Date], PriorStart, PriorEnd))
+RETURN IF(FullMonth && PriorStart >= CoverageStart, DIVIDE([净收费] - PriorAmount, ABS(PriorAmount)))
+
+净收费同比 =
+VAR CurrentStart = MIN(Calendar[Date])
+VAR CurrentEnd = MAX(Calendar[Date])
+VAR PriorStart = EDATE(CurrentStart, -12)
+VAR PriorEnd = EOMONTH(PriorStart, 0)
+VAR CoverageStart = MINX(ALL(Calendar), Calendar[Date])
+VAR FullMonth = DAY(CurrentStart) = 1 && CurrentEnd = EOMONTH(CurrentStart, 0)
+    && COUNTROWS(VALUES(Calendar[Date])) = DAY(CurrentEnd)
+VAR PriorAmount = CALCULATE([净收费], REMOVEFILTERS(Calendar), DATESBETWEEN(Calendar[Date], PriorStart, PriorEnd))
+RETURN IF(FullMonth && PriorStart >= CoverageStart, DIVIDE([净收费] - PriorAmount, ABS(PriorAmount)))

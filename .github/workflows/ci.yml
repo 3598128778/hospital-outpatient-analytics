@@ -1,0 +1,45 @@
+name: Reproduce and test
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4.3
+        env:
+          MYSQL_ROOT_PASSWORD: ci-root-password
+          MYSQL_DATABASE: hospital_demo
+          MYSQL_USER: hospital
+          MYSQL_PASSWORD: ci-app-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      MYSQL_HOST: 127.0.0.1
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: hospital_demo
+      MYSQL_USER: hospital
+      MYSQL_PASSWORD: ci-app-password
+      TEST_MYSQL: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m hospital.pipeline --generate
+      - run: python -m pytest -q
+      - run: python -m hospital.pipeline --backend mysql --output artifacts/mysql
+      - name: Compare complete backend outputs
+        run: diff artifacts/daily_metrics.csv artifacts/mysql/daily_metrics.csv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-analysis-results
+          path: artifacts/

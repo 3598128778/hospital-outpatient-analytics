@@ -1,0 +1,7 @@
+{
+  "name": "Outpatient Teal",
+  "dataColors": ["#087F8C", "#EC9A46", "#426B9B", "#5EAD93", "#B37AA6"],
+  "background": "#F4F7FB",
+  "foreground": "#172C43",
+  "tableAccent": "#087F8C"
+}
