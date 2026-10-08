@@ -1,10 +1,14 @@
 # 医院门诊运营数据分析与 AI 分析助手
 
+[![Reproduce and test](https://github.com/3598128778/hospital-outpatient-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/3598128778/hospital-outpatient-analytics/actions/workflows/ci.yml)
+
 基于**可重复生成的模拟数据**，串联“数据校验 → SQL 指标计算 → 异常识别 → 科室/时段/明细下钻 → AI 解读”。面向数据分析作品集与毕业设计扩展演示；没有使用真实患者资料，也不声称已经在医院落地。
 
 技术栈：**Python · SQL · MySQL · Shell/PowerShell · Streamlit · Power BI（M / DAX）· LLM API · Prompt Engineering**。
 
 ![运营分析看板](docs/dashboard.png)
+
+[查看 AI 解读界面](docs/assistant.png) · [完整复现手册](docs/REPRODUCE.md) · [Power BI 搭建步骤](powerbi/README.md)
 
 ## 快速运行
 
